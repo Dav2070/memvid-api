@@ -1,22 +1,25 @@
-from ariadne import QueryType, graphql_sync, make_executable_schema
+import os
+import boto3
+from ariadne import graphql_sync, make_executable_schema
 from ariadne.explorer import ExplorerGraphiQL
 from flask import Flask, jsonify, request
+from dotenv import load_dotenv
+from src.type_defs import type_defs
+from src.resolvers.bla import query
+from src.resolvers.bucket import mutation
 
-type_defs = """
-	type Query {
-		hello: String!
-	}
-"""
-
-query = QueryType()
-
-@query.field("hello")
-def resolve_hello(_, info):
-	return "Hello"
-
-schema = make_executable_schema(type_defs, query)
+load_dotenv()
+schema = make_executable_schema(type_defs, [query, mutation])
 
 app = Flask(__name__)
+
+s3 = boto3.client(
+	"s3",
+	region_name="fra1",
+	endpoint_url="https://fra1.digitaloceanspaces.com",
+	aws_access_key_id=os.getenv("SPACES_ACCESS_KEY"),
+	aws_secret_access_key=os.getenv("SPACES_SECRET_KEY")
+)
 
 # Retrieve HTML for the GraphiQL.
 # If explorer implements logic dependant on current request,
@@ -42,7 +45,10 @@ def graphql_server():
 	success, result = graphql_sync(
 		schema,
 		data,
-		context_value={"request": request},
+		context_value={
+			"request": request,
+			"s3": s3
+		},
 		debug=app.debug
 	)
 

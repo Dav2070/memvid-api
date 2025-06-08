@@ -6,6 +6,7 @@ type_defs = """
 	type Mutation {
 		createBucket(name: String!): Bucket!
 		addFileToBucket(name: String!, content: String!): Bucket!
+		generateMemory(name: String!): Bucket!
 	}
 
 	type Bucket {

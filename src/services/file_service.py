@@ -15,6 +15,38 @@ def list_folders(s3):
 
 	return folders
 
+def list_files(s3, folder_name):
+	"""
+	List all files in the specified folder of the S3 bucket.
+	"""
+	if not folder_name.endswith('/'):
+		folder_name += '/'
+
+	response = s3.list_objects_v2(
+		Bucket="document-ai-dav",
+		Prefix=folder_name
+	)
+
+	files = []
+
+	if 'Contents' in response:
+		for obj in response['Contents']:
+			if obj['Key'] != folder_name:  # Exclude the folder itself
+				files.append(obj['Key'].replace(folder_name, ''))
+
+	return files
+
+def get_file_content(s3, file_name):
+	"""
+	Get the content of a file from the specified folder in the S3 bucket.
+	"""
+	response = s3.get_object(
+		Bucket="document-ai-dav",
+		Key=file_name
+	)
+
+	return response['Body'].read()
+
 def create_folder(s3, folder_name):
 	"""
 	Create a folder in the S3 bucket.

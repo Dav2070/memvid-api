@@ -1,6 +1,8 @@
+import os
 import uuid
 from ariadne import MutationType
-from ..services.file_service import list_folders, create_folder, upload_file
+from memvid import MemvidEncoder
+from ..services.file_service import list_folders, list_files, get_file_content, create_folder, upload_file
 
 mutation = MutationType()
 
@@ -38,4 +40,49 @@ def add_file_to_bucket(_, info, name, content):
 	file_name = f"{name}/{str(uuid.uuid4())}"
 	upload_file(info.context['s3'], file_name, content)
 
+	return { "name": name }
+
+@mutation.field("generateMemory")
+def generate_memory(_, info, name):
+	"""
+	Generate a memory for the specified bucket.
+	"""
+	folders = list_folders(info.context['s3'])
+
+	if name not in folders:
+		raise Exception(f"Bucket with name '{name}' does not exist.")
+
+	# Retrieve all files in the bucket
+	files = list_files(info.context['s3'], name)
+	chunks = []
+	uploaded_memory_file_name = "memory.mp4"
+	uploaded_index_file_name = "index.json"
+
+	for file in files:
+		if file == uploaded_memory_file_name or file == uploaded_index_file_name:
+			continue
+
+		content = get_file_content(info.context['s3'], f"{name}/{file}")
+
+		if content:
+			chunks.append(content.decode('utf-8'))
+
+	encoder = MemvidEncoder()
+	encoder.add_chunks(chunks)
+
+	memory_file_name = f"{name}_memory.mp4"
+	index_file_name = f"{name}_index.json"
+	index_faiss_file_name = f"{name}_index.faiss"
+
+	encoder.build_video(memory_file_name, index_file_name)
+
+	# Upload the generated memory video and index to the bucket
+	upload_file(info.context['s3'], f"{name}/{uploaded_memory_file_name}", open(memory_file_name, "rb"))
+	upload_file(info.context['s3'], f"{name}/{uploaded_index_file_name}", open(index_file_name, "rb"))
+
+	# Delete the local files after upload
+	os.remove(memory_file_name)
+	os.remove(index_file_name)
+	os.remove(index_faiss_file_name)
+	
 	return { "name": name }

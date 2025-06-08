@@ -57,6 +57,7 @@ def generate_memory(_, info, name):
 	chunks = []
 	uploaded_memory_file_name = "memory.mp4"
 	uploaded_index_file_name = "index.json"
+	uploaded_index_faiss_file_name = "index.faiss"
 
 	for file in files:
 		if file == uploaded_memory_file_name or file == uploaded_index_file_name:
@@ -79,6 +80,7 @@ def generate_memory(_, info, name):
 	# Upload the generated memory video and index to the bucket
 	upload_file(info.context['s3'], f"{name}/{uploaded_memory_file_name}", open(memory_file_name, "rb"))
 	upload_file(info.context['s3'], f"{name}/{uploaded_index_file_name}", open(index_file_name, "rb"))
+	upload_file(info.context['s3'], f"{name}/{uploaded_index_faiss_file_name}", open(index_faiss_file_name, "rb"))
 
 	# Delete the local files after upload
 	os.remove(memory_file_name)

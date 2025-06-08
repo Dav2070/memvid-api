@@ -5,7 +5,7 @@ from ariadne.explorer import ExplorerGraphiQL
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 from src.type_defs import type_defs
-from src.resolvers.bla import query
+from src.resolvers.misc import query
 from src.resolvers.bucket import mutation
 
 load_dotenv()

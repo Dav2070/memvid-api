@@ -1,6 +1,6 @@
 type_defs = """
 	type Query {
-		hello: String!
+		chatWithMemory(bucketName: String!, message: String!): String!
 	}
 
 	type Mutation {

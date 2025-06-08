@@ -47,6 +47,16 @@ def get_file_content(s3, file_name):
 
 	return response['Body'].read()
 
+def download_file(s3, file_name, file_path):
+	"""
+	Download a file from the specified folder in the S3 bucket to a local path.
+	"""
+	s3.download_file(
+		Bucket="document-ai-dav",
+		Key=file_name,
+		Filename=file_path
+	)
+
 def create_folder(s3, folder_name):
 	"""
 	Create a folder in the S3 bucket.
